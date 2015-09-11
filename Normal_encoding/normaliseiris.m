@@ -164,12 +164,7 @@ image(ind1) = 255;
 
 
 % write out rings overlaying original iris image
-w = cd;
-cd(DIAGPATH);
-
-imwrite(image,[eyeimage_filename,'-normal.jpg'],'jpg');
-
-cd(w);
+imwrite(image,[DIAGPATH, eyeimage_filename,'-normal.jpg'],'jpg');
 
 % end diagnostics
 

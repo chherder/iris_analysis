@@ -18,11 +18,11 @@
 % The University of Western Australia
 % November 2003
 
-function [template, mask, conf] = createiristemplate(eyeimage_filename)
+function [template, mask, conf] = createiristemplate(eyeimage_filename, repo)
 
 % path for writing diagnostic images
 global DIAGPATH
-DIAGPATH = 'diagnostics';
+DIAGPATH = 'diagnostics\';
 
 %normalisation parameters
 radial_res = 20;
@@ -36,9 +36,9 @@ minWaveLength=18;
 mult=1; % not applicable if using nscales = 1
 sigmaOnf=0.5;
 
-eyeimage = imread(eyeimage_filename); 
+eyeimage = imread([repo eyeimage_filename]); 
 
-savefile = [eyeimage_filename,'-houghpara.mat'];
+savefile = ['mat_data/', eyeimage_filename,'-houghpara.mat'];
 [stat,mess]=fileattrib(savefile);
 
 if stat == 1
@@ -46,7 +46,7 @@ if stat == 1
     % then load the circle parameters and
     % noise information for that file.
     load(savefile);
-    
+    %disp(['load ' savefile]);
 else
     
     % if this file has not been processed before
@@ -55,7 +55,7 @@ else
     
     [circleiris circlepupil imagewithnoise] = segmentiris(eyeimage);
     save(savefile,'circleiris','circlepupil','imagewithnoise');
-    
+    return; 
 end
 
 % WRITE NOISE IMAGE
@@ -79,24 +79,17 @@ imagewithnoise2(ind1) = 255;
 % Write circles overlayed
 imagewithcircles(ind2) = 255;
 imagewithcircles(ind1) = 255;
-w = cd;
-cd(DIAGPATH);
-imwrite(imagewithnoise2,[eyeimage_filename,'-noise.jpg'],'jpg');
-imwrite(imagewithcircles,[eyeimage_filename,'-segmented.jpg'],'jpg');
-cd(w);
+imwrite(imagewithnoise2,[DIAGPATH, eyeimage_filename, '-noise.jpg'],'jpg');
+imwrite(imagewithcircles,[DIAGPATH, eyeimage_filename, '-segmented.jpg'],'jpg');
 
 % perform normalisation
 
 [polar_array noise_array] = normaliseiris(imagewithnoise, circleiris(2),...
     circleiris(1), circleiris(3), circlepupil(2), circlepupil(1), circlepupil(3),eyeimage_filename, radial_res, angular_res);
 
-
 % WRITE NORMALISED PATTERN, AND NOISE PATTERN
-w = cd;
-cd(DIAGPATH);
-imwrite(polar_array,[eyeimage_filename,'-polar.jpg'],'jpg');
-imwrite(noise_array,[eyeimage_filename,'-polarnoise.jpg'],'jpg');
-cd(w);
+imwrite(polar_array,[DIAGPATH, eyeimage_filename, '-polar.jpg'],'jpg');
+imwrite(noise_array,[DIAGPATH, eyeimage_filename, '-polarnoise.jpg'],'jpg');
 
 % perform feature encoding
 [template, mask, conf] = encode(polar_array, noise_array, nscales, minWaveLength, mult, sigmaOnf); 

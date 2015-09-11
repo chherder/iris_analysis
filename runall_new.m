@@ -1,3 +1,5 @@
+addpath('./', './Segmentation', './Matching', './Normal_encoding')
+
 %only works for nscales = 1.  This is OK - this analysis appears to be
 %matching (roughly) the 20% error rate observed in Libor Masek's thesis.
 
@@ -20,8 +22,10 @@ do_phase3B = 1;
 radial_res = 20;
 angular_res = 240;
 
+repo = '..\TemplateAging\spring_2008-lr-clean\';
+
 if(do_phase1 == 1)
-    filelist=dir('*.tiff');
+    filelist = dir([repo '*.tiff']);
     s = struct('filename','',...
         'temp',zeros(radial_res,2*angular_res),...
         'mask',zeros(radial_res,2*angular_res),...
@@ -30,9 +34,12 @@ if(do_phase1 == 1)
     totallist = repmat(s,length(filelist),1);
 
     for i = 1:length(filelist)
-        disp(filelist(i).name);
-        [totallist(i).temp, totallist(i).mask, totallist(i).conf] = createiristemplate(filelist(i).name);
-        totallist(i).filename = filelist(i).name;
+        filename = filelist(i).name;
+        disp(filename);
+        totallist(i).filename = filename;
+        try
+            [totallist(i).temp, totallist(i).mask, totallist(i).conf] = createiristemplate(filename, repo); 
+        end
     end
 
     %savefile = ['total.mat'];
@@ -69,7 +76,7 @@ if do_phase2 == 1
             totallist(1).temp, totallist(1).mask,1);
 
         %shift the confidence information, subtract it off
-        disp(['Hamming Distance: ' num2str(hd)]);
+        %disp(['Hamming Distance: ' num2str(hd)]);
         sconf = shiftbits(totallist(i).conf,shift,1);
         smask = shiftbits(totallist(i).mask,shift,1);
         confdiff = totallist(1).conf - sconf;
@@ -95,7 +102,7 @@ if do_phase2 == 1
         [hd,shift]=gethammingdistance(...
             totallist(12).temp,totallist(12).mask,...
             totallist(1).temp, totallist(1).mask,1);
-        disp(['Hamming Distance (l to r): ' num2str(hd)]);
+        %disp(['Hamming Distance (l to r): ' num2str(hd)]);
 
     end
 
